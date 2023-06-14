@@ -1,25 +1,31 @@
 rl -s learning on # Reinforcement Llearning
 
 sp {propose*initialize-escape
-    (state <s> ^superstatte nil 
-               -^name)
+    (state <s> ^superstate nil 
+              -^name)
 -->
     (<s> ^operator <o> +)
     (<o> ^name initialize-escape)
+    (write |Proposed!|)
 }
 
 sp {apply*initialize-escape
-    (state <s> operator <op>)
+    (state <s> ^operator <op>)
     (<op> ^name initialize-escape)
 -->
     (<s> ^name escape
-        ^object <el> <tw> <st> <tr2> <tr2> <wn>
-        ^height 1.5
-        ^location start)
-    (<el> ^name elastic)
-    (<tw> ^name twig)
+         ^object <el> <tw> <st> <tr1> <tr2> <wn>
+         ^height 1.5
+         ^location start
+         ^direction <d>)
+    (<el> ^name elastic) 
+    (<tw> ^name twig) # rametto
     (<st> ^name stones) 
-    (<tr1> ^name trunk ^height 1)  
-    (<tr2> ^name trunk ^height 1)
-    (<wn> ^name windows ^height 3.5)
+    (<tr1> ^name trunk ^height 1.0)   
+    (<tr2> ^name trunk ^height 1.0)
+    (<wn> ^name window ^height 3.5)
+    (<d> ^name go-window ^reward 1.0)
+    (write |initialized!|)
+    (halt)
 }
+
