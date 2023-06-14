@@ -26,6 +26,59 @@ sp {apply*initialize-escape
     (<wn> ^name window ^height 3.5)
     (<d> ^name go-window ^reward 1.0)
     (write |initialized!|)
-    (halt)
 }
 
+sp {propose*move
+   (state <s> ^name escape
+              ^direction <d> 
+              ^location start)
+   (<d> ^name <dir>)
+-->
+   (<s> ^operator <op> +) 
+   (<op> ^name move 
+         ^dir <dir>)
+}
+
+sp {rl*go-window
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name move 
+         ^dir go-window) 
+-->
+   (<s> ^operator <op> = 0) 
+}
+
+sp {apply*move
+   (state <s> ^operator <op> 
+              ^location start)
+   (<op> ^name move 
+         ^dir <dir>)
+-->
+   (<s> ^location start - <dir>) 
+   (write (crlf) |Moved: | <dir>)
+}
+
+sp {look-window
+    (state <s> ^name escape
+               ^location go-window)
+-->    
+    (write (crlf) |Oh shit maaaan this window it's so fucking nice!|)
+}
+
+sp {elaborate*reward 
+   (state <s> ^name escape
+              ^reward-link <r> #reward-link
+              ^location <d-name> 
+              ^direction <dir>) 
+   (<dir> ^name <d-name> ^reward <d-reward>) 
+-->
+   (<r> ^reward <rr>) 
+   (<rr> ^value <d-reward>)
+}
+
+sp {elaborate*done
+   (state <s> ^name escape
+              ^location {<> start})
+-->
+   (halt) 
+}
