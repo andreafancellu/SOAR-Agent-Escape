@@ -33,7 +33,7 @@ sp {apply*initialize-escape
     (write |initialized!|)
 }
 
-### Propose & Apply
+### Propose & Apply ### 
 sp {propose*move
    (state <s> ^name escape
               ^direction <d> 
@@ -56,12 +56,12 @@ sp {apply*move
 }
 
 sp {propose*craft
-   (state <s> ^operator <op>
+   (state <s> ^name escape 
               ^tool <t>)
    (<t> ^name <toolname>
         ^created no)
 -->
-   (<s> ^operator <op> +)
+   (<s> ^operator <op>)
    (<op> ^name craft
          ^tool <toolname>)
 }
@@ -69,84 +69,28 @@ sp {propose*craft
 sp {apply*craft
    (state <s> ^operator <op>)
    (<op> ^name craft
-         ^tool <toolname>)
+         ^tool <tool>)
 -->
-   (<toolname> ^created no - yes +)
-   (write (crlf) |Tool Created:| <toolname>)
+   (<s> ^tool <tool>)
+   (<tool> ^created no - yes)
+   (write (crlf) |Tool Created:| <tool>)
 }
 
 
-### RL Rules
-sp {rl*window
+###### Utils ######
+sp {abab
    (state <s> ^name escape 
-              ^operator <op> +) 
-   (<op> ^name move 
-         ^dir window) 
+              ^tool <t>)
+   (<t> ^name <toolname>
+        ^created yes)
 -->
-   (<s> ^operator <op> = 0) 
-}
-
-sp {rl*door
-   (state <s> ^name escape 
-              ^operator <op> +) 
-   (<op> ^name move 
-         ^dir door) 
--->
-   (<s> ^operator <op> = 0) 
-}
-
-sp {rl*sling
-   (state <s> ^name escape 
-              ^operator <op> +) 
-   (<op> ^name craft 
-         ^tool sling) 
--->
-   (<s> ^operator <op> = 0) 
-}
-
-sp {rl*stoneel
-   (state <s> ^name escape 
-              ^operator <op> +) 
-   (<op> ^name craft 
-         ^tool stoneel) 
--->
-   (<s> ^operator <op> = 0) 
-}
-
-sp {rl*twigstone
-   (state <s> ^name escape 
-              ^operator <op> +) 
-   (<op> ^name craft 
-         ^tool twigstone) 
--->
-   (<s> ^operator <op> = 0) 
+   (write (crlf) |Porcoddio: | <toolname>)
 }
 
 
-# Utils
 sp {look-window
     (state <s> ^name escape
                ^location window)
 -->    
     (write (crlf) |Oh shit maaaan this window it's so fucking nice!|)
-}
-
-
-### Che cazzo è sta roba !!!
-sp {elaborate*reward 
-   (state <s> ^name escape
-              ^reward-link <r> #reward-link
-              ^location <d-name> 
-              ^direction <dir>) 
-   (<dir> ^name <d-name> ^reward <d-reward>) 
--->
-   (<r> ^reward <rr>) 
-   (<rr> ^value <d-reward>)
-}
-
-sp {elaborate*done
-   (state <s> ^name escape
-              ^location {<> start})
--->
-   (halt) 
 }
