@@ -15,19 +15,25 @@ sp {apply*initialize-escape
 -->
     (<s> ^name escape
          ^object <el> <tw> <st> <tr1> <tr2> <wn>
+         ^tool <sling> <twigstone> <stoneel>
          ^height 1.5
          ^location start
-         ^direction <d>)
+         ^direction <d> <d1>)
     (<el> ^name elastic) 
     (<tw> ^name twig) # rametto
     (<st> ^name stones) 
     (<tr1> ^name trunk ^height 1.0)   
     (<tr2> ^name trunk ^height 1.0)
     (<wn> ^name window ^height 3.5)
-    (<d> ^name go-window ^reward 1.0)
+    (<d> ^name window ^reward 1.0)
+    (<d1> ^name door ^reward -1.0)
+    (<sling> ^name sling ^component <el> <tw> ^reward 1.0 ^created no)
+    (<twigstone> ^name twigstone ^component <tw> <st> ^reward -1.0 ^created no)
+    (<stoneel> ^name stoneel ^component <st> <el> ^reward -1.0 ^created no)
     (write |initialized!|)
 }
 
+### Propose & Apply
 sp {propose*move
    (state <s> ^name escape
               ^direction <d> 
@@ -37,15 +43,6 @@ sp {propose*move
    (<s> ^operator <op> +) 
    (<op> ^name move 
          ^dir <dir>)
-}
-
-sp {rl*go-window
-   (state <s> ^name escape 
-              ^operator <op> +) 
-   (<op> ^name move 
-         ^dir go-window) 
--->
-   (<s> ^operator <op> = 0) 
 }
 
 sp {apply*move
@@ -58,13 +55,84 @@ sp {apply*move
    (write (crlf) |Moved: | <dir>)
 }
 
+sp {propose*craft
+   (state <s> ^operator <op>
+              ^tool <t>)
+   (<t> ^name <toolname>
+        ^created no)
+-->
+   (<s> ^operator <op> +)
+   (<op> ^name craft
+         ^tool <toolname>)
+}
+
+sp {apply*craft
+   (state <s> ^operator <op>)
+   (<op> ^name craft
+         ^tool <toolname>)
+-->
+   (<toolname> ^created no - yes +)
+   (write (crlf) |Tool Created:| <toolname>)
+}
+
+
+### RL Rules
+sp {rl*window
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name move 
+         ^dir window) 
+-->
+   (<s> ^operator <op> = 0) 
+}
+
+sp {rl*door
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name move 
+         ^dir door) 
+-->
+   (<s> ^operator <op> = 0) 
+}
+
+sp {rl*sling
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name craft 
+         ^tool sling) 
+-->
+   (<s> ^operator <op> = 0) 
+}
+
+sp {rl*stoneel
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name craft 
+         ^tool stoneel) 
+-->
+   (<s> ^operator <op> = 0) 
+}
+
+sp {rl*twigstone
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name craft 
+         ^tool twigstone) 
+-->
+   (<s> ^operator <op> = 0) 
+}
+
+
+# Utils
 sp {look-window
     (state <s> ^name escape
-               ^location go-window)
+               ^location window)
 -->    
     (write (crlf) |Oh shit maaaan this window it's so fucking nice!|)
 }
 
+
+### Che cazzo è sta roba !!!
 sp {elaborate*reward 
    (state <s> ^name escape
               ^reward-link <r> #reward-link
