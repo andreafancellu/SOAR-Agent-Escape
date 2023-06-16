@@ -18,12 +18,12 @@ sp {apply*initialize-escape
          ^location start
          ^direction <d1> <d2> <d3> <d4> <d5> <d6>)
       
-    (<d1> ^name window_loc ^reward 1.0)
-    (<d2> ^name elastic_loc ^item <el> ^reward 1.0)
-    (<d3> ^name stone_loc ^item <st> ^reward 1.0)
-    (<d4> ^name twig_loc ^item <tw> ^reward 1.0)
-    (<d5> ^name trunk1_loc ^item <tr1> ^reward 1.0)
-    (<d6> ^name trunk2_loc ^item <tr2> ^reward 1.0)
+    (<d1> ^name window_loc ^item <wn> ^reward -0.5)
+    (<d2> ^name elastic_loc ^item <el> ^reward -10)
+    (<d3> ^name stone_loc ^item <st> ^reward -10)
+    (<d4> ^name twig_loc ^item <tw> ^reward -10)
+    (<d5> ^name trunk1_loc ^item <tr1> ^reward -10)
+    (<d6> ^name trunk2_loc ^item <tr2> ^reward -10)
 
     (<el> ^name elastic) 
     (<tw> ^name twig) # rametto
@@ -44,7 +44,7 @@ sp {propose*move
 -->
    (<s> ^operator <op> +) 
    (<op> ^name move 
-         ^dir <dir>)
+         ^dir <dir>) 
 }
 
 sp {apply*move
@@ -55,6 +55,30 @@ sp {apply*move
 -->
    (<s> ^location start - <dir>) 
    (write (crlf) |Moved: | <dir>)
+}
+
+sp {propose*take
+   (state <s> ^name escape
+              ^location <loc>
+              ^direction <dir>)
+   (<dir> ^name <loc>
+          ^item <item>)
+   (<item> ^name <item_name>)
+   
+-->
+   (<s> ^operator <op> +)
+   (<op> ^name take
+         ^item <item_name>)
+}
+
+sp {apply*take
+   (state <s> ^name escape
+              ^operator <op>)
+   (<op> ^name take 
+         ^item <item>)
+-->
+   (write (crlf) |Item:| <item>)
+   (halt)
 }
 
 ### RL Rules
@@ -122,7 +146,7 @@ sp {elaborate*reward
 
 sp {elaborate*done
    (state <s> ^name escape
-              ^location {<> start}) # se lo stato s si trova in una location che non è più start
+              ^bag {<> nil}) # se lo stato s si trova in una location che non è più start
 -->
    (halt) # allora fermati
 }
