@@ -14,22 +14,24 @@ sp {apply*initialize-escape
     (<op> ^name initialize-escape)
 -->
     (<s> ^name escape
-         ^object <el> <tw> <st> <tr1> <tr2> <wn>
-         ^tool <sling> <twigstone> <stoneel>
          ^height 1.5
          ^location start
-         ^direction <d> <d1>)
+         ^direction <d1> <d2> <d3> <d4> <d5> <d6>)
+      
+    (<d1> ^name window_loc ^reward 1.0)
+    (<d2> ^name elastic_loc ^item <el> ^reward 1.0)
+    (<d3> ^name stone_loc ^item <st> ^reward 1.0)
+    (<d4> ^name twig_loc ^item <tw> ^reward 1.0)
+    (<d5> ^name trunk1_loc ^item <tr1> ^reward 1.0)
+    (<d6> ^name trunk2_loc ^item <tr2> ^reward 1.0)
+
     (<el> ^name elastic) 
     (<tw> ^name twig) # rametto
     (<st> ^name stones) 
     (<tr1> ^name trunk ^height 1.0)   
     (<tr2> ^name trunk ^height 1.0)
     (<wn> ^name window ^height 3.5)
-    (<d> ^name window ^reward 1.0)
-    (<d1> ^name door ^reward -1.0)
-    (<sling> ^name sling ^component <el> <tw> ^reward 1.0 ^created no)
-    (<twigstone> ^name twigstone ^component <tw> <st> ^reward -1.0 ^created no)
-    (<stoneel> ^name stoneel ^component <st> <el> ^reward -1.0 ^created no)
+    
     (write |initialized!|)
 }
 
@@ -55,42 +57,72 @@ sp {apply*move
    (write (crlf) |Moved: | <dir>)
 }
 
-sp {propose*craft
+### RL Rules
+sp {rl*window
    (state <s> ^name escape 
-              ^tool <t>)
-   (<t> ^name <toolname>
-        ^created no)
+              ^operator <op> +) 
+   (<op> ^name move 
+         ^dir window_loc) 
 -->
-   (<s> ^operator <op>)
-   (<op> ^name craft
-         ^tool <toolname>)
+   (<s> ^operator <op> = 0) 
 }
 
-sp {apply*craft
-   (state <s> ^operator <op>)
-   (<op> ^name craft
-         ^tool <tool>)
--->
-   (<s> ^tool <tool>)
-   (<tool> ^created no - yes)
-   (write (crlf) |Tool Created:| <tool>)
-}
-
-
-###### Utils ######
-sp {abab
+sp {rl*elastic
    (state <s> ^name escape 
-              ^tool <t>)
-   (<t> ^name <toolname>
-        ^created yes)
+              ^operator <op> +) 
+   (<op> ^name move 
+         ^dir elastic_loc) 
 -->
-   (write (crlf) |Porcoddio: | <toolname>)
+   (<s> ^operator <op> = 0) 
 }
 
+sp {rl*stone
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name move 
+         ^dir stone_loc) 
+-->
+   (<s> ^operator <op> = 0) 
+}
+sp {rl*twig
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name move 
+         ^dir twig_loc) 
+-->
+   (<s> ^operator <op> = 0) 
+}
+sp {rl*trunk1
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name move 
+         ^dir trunk1_loc) 
+-->
+   (<s> ^operator <op> = 0) 
+}
+sp {rl*trunk2
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name move 
+         ^dir trunk2_loc) 
+-->
+   (<s> ^operator <op> = 0) 
+}
 
-sp {look-window
-    (state <s> ^name escape
-               ^location window)
--->    
-    (write (crlf) |Oh shit maaaan this window it's so fucking nice!|)
+sp {elaborate*reward 
+   (state <s> ^name escape
+              ^reward-link <r> #reward-link
+              ^location <d-name> 
+              ^direction <dir>) 
+   (<dir> ^name <d-name> ^reward <d-reward>) 
+-->
+   (<r> ^reward <rr>) 
+   (<rr> ^value <d-reward>)
+}
+
+sp {elaborate*done
+   (state <s> ^name escape
+              ^location {<> start}) # se lo stato s si trova in una location che non è più start
+-->
+   (halt) # allora fermati
 }

@@ -1,21 +1,25 @@
-### RL Rules
-sp {rl*window
+sp {propose*craft
    (state <s> ^name escape 
-              ^operator <op> +) 
-   (<op> ^name move 
-         ^dir window) 
+              ^tool <t>)
+   (<t> ^name <toolname>
+        ^created no)
 -->
-   (<s> ^operator <op> = 0) 
+   (<s> ^operator <op>)
+   (<op> ^name craft
+         ^tool <toolname>)
 }
 
-sp {rl*door
-   (state <s> ^name escape 
-              ^operator <op> +) 
-   (<op> ^name move 
-         ^dir door) 
+sp {apply*craft
+   (state <s> ^operator <op>)
+   (<op> ^name craft
+         ^tool <tool>)
 -->
-   (<s> ^operator <op> = 0) 
+   (<s> ^tool <tool>)
+   (<tool> ^created no - yes)
+   (write (crlf) |Tool Created:| <tool>)
 }
+
+
 
 sp {rl*sling
    (state <s> ^name escape 
@@ -45,18 +49,6 @@ sp {rl*twigstone
 }
 
 
-### Che cazzo è sta roba !!!
-sp {elaborate*reward 
-   (state <s> ^name escape
-              ^reward-link <r> #reward-link
-              ^location <d-name> 
-              ^direction <dir>) 
-   (<dir> ^name <d-name> ^reward <d-reward>) 
--->
-   (<r> ^reward <rr>) 
-   (<rr> ^value <d-reward>)
-}
-
 sp {elaborate*reward*combination
    (state <s> ^name escape
          ^reward-link <r>
@@ -77,9 +69,46 @@ sp {elaborate*done_b
 }
 
 
-sp {elaborate*done
-   (state <s> ^name left-right
-              ^location {<> start}) # se lo stato s si trova in una location che non è più start
+sp {propose*take
+   (state <s> ^name escape
+               ^object <el>
+               ^location <loc>)
+   (<loc> ^name elastic_loc)
+   (<el> ^name elastic)
 -->
-   (halt) # allora fermati
+   (<s> ^operator <op> +)
+   (<op> ^name take
+         ^item <el>)
+}
+
+sp {apply*take
+   (state <s> ^name escape
+               ^operator <op>
+               ^location <loc>)
+   (<loc> ^name elastic_loc)
+   (<op> ^name take 
+         ^item <el>)
+-->
+   (<s> ^bag <el>) 
+   (write (crlf) |Taken: | <el>)
+}
+
+sp {rl*take
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name take 
+         ^item <item>) 
+-->
+   (<s> ^operator <op> = 0) 
+}
+
+sp {elaborate*reward_take
+   (state <s> ^name escape
+              ^reward-link <r> #reward-link
+              ^bag <el> )
+            
+   (<el> ^name <e-name> ^reward <e-reward>) 
+-->
+   (<r> ^reward <rr>) 
+   (<rr> ^value <e-reward>)
 }
