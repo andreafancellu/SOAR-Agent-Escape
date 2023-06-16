@@ -18,7 +18,8 @@ sp {apply*initialize-escape
          ^location start
          ^direction <d1> <d2> <d3> <d4> <d5> <d6>
          ^escaped no)
-      
+    
+    #(<d0> ^name start_loc ^item nil ^reward -1000)
     (<d1> ^name window_loc ^item <wn> ^reward -0.5)
     (<d2> ^name elastic_loc ^item <el> ^reward -10)
     (<d3> ^name stone_loc ^item <st> ^reward -10)
@@ -36,25 +37,38 @@ sp {apply*initialize-escape
     (write |initialized!|)
 }
 
+sp {htcompare*move*take 
+   (state <s>  ^name escape) 
+   (<s> ^operator <op-move> +) 
+   (<s> ^operator <op-take> +) 
+   (<op-move> ^name move)
+   (<op-take> ^name take) 
+-->
+   (<s> ^operator <op-take> > <op-move>)
+} 
+
 ### Propose & Apply ### 
 sp {propose*move
    (state <s> ^name escape
               ^direction <d> 
-              ^location start)
+              ^location <from>)
+
    (<d> ^name <dir>)
+   -(<d> ^name <from>)
 -->
    (<s> ^operator <op> +) 
    (<op> ^name move 
          ^dir <dir>) 
+   (write (crlf) |Propose Move from | <from> | to | <dir>)
 }
 
 sp {apply*move
    (state <s> ^operator <op> 
-              ^location start)
+              ^location <loc>)
    (<op> ^name move 
          ^dir <dir>)
 -->
-   (<s> ^location start - <dir>) 
+   (<s> ^location <loc> - <dir>) 
    (write (crlf) |Moved: | <dir>)
 }
 
@@ -70,6 +84,7 @@ sp {propose*take
    (<s> ^operator <op> +)
    (<op> ^name take
          ^item <item_name>)
+   (write (crlf) |Propose Take | <item_name>)
 }
 
 sp {apply*take
@@ -149,7 +164,7 @@ sp {elaborate*reward
 
 sp {elaborate*done
    (state <s> ^name escape
-              ^bag {<> nil}) 
+              ^escaped yes) 
 -->
    (halt)
 }
