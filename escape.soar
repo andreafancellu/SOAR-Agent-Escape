@@ -16,7 +16,8 @@ sp {apply*initialize-escape
     (<s> ^name escape
          ^height 1.5
          ^location start
-         ^direction <d1> <d2> <d3> <d4> <d5> <d6>)
+         ^direction <d1> <d2> <d3> <d4> <d5> <d6>
+         ^escaped no)
       
     (<d1> ^name window_loc ^item <wn> ^reward -0.5)
     (<d2> ^name elastic_loc ^item <el> ^reward -10)
@@ -28,8 +29,8 @@ sp {apply*initialize-escape
     (<el> ^name elastic) 
     (<tw> ^name twig) # rametto
     (<st> ^name stones) 
-    (<tr1> ^name trunk ^height 1.0)   
-    (<tr2> ^name trunk ^height 1.0)
+    (<tr1> ^name trunk_1 ^height 1.0)   
+    (<tr2> ^name trunk_2 ^height 1.0)
     (<wn> ^name window ^height 3.5)
     
     (write |initialized!|)
@@ -64,7 +65,7 @@ sp {propose*take
    (<dir> ^name <loc>
           ^item <item>)
    (<item> ^name <item_name>)
-   
+   -(<item> ^name window)
 -->
    (<s> ^operator <op> +)
    (<op> ^name take
@@ -77,9 +78,11 @@ sp {apply*take
    (<op> ^name take 
          ^item <item>)
 -->
+   (<s> ^bag <item>)
    (write (crlf) |Item:| <item>)
-   (halt)
 }
+
+
 
 ### RL Rules
 sp {rl*window
@@ -146,7 +149,7 @@ sp {elaborate*reward
 
 sp {elaborate*done
    (state <s> ^name escape
-              ^bag {<> nil}) # se lo stato s si trova in una location che non è più start
+              ^bag {<> nil}) 
 -->
-   (halt) # allora fermati
+   (halt)
 }
