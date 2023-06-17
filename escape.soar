@@ -6,7 +6,7 @@ sp {propose*initialize-escape
 -->
     (<s> ^operator <o> +)
     (<o> ^name initialize-escape)
-    (write |Proposed!|)
+    #(write |Proposed!|)
 }
 
 sp {apply*initialize-escape
@@ -16,25 +16,26 @@ sp {apply*initialize-escape
     (<s> ^name escape
          ^height 1.5
          ^location start
+         ^objects <el> <tw> <st> <tr1> <tr2>
          ^direction <d1> <d2> <d3> <d4> <d5> <d6>
          ^escaped no)
     
     #(<d0> ^name start_loc ^item nil ^reward -1000)
     (<d1> ^name window_loc ^item <wn> ^reward -0.5)
     (<d2> ^name elastic_loc ^item <el> ^reward -10)
-    (<d3> ^name stone_loc ^item <st> ^reward -10)
+    (<d3> ^name stones_loc ^item <st> ^reward -10)
     (<d4> ^name twig_loc ^item <tw> ^reward -10)
     (<d5> ^name trunk1_loc ^item <tr1> ^reward -10)
     (<d6> ^name trunk2_loc ^item <tr2> ^reward -10)
 
-    (<el> ^name elastic) 
-    (<tw> ^name twig) # rametto
-    (<st> ^name stones) 
-    (<tr1> ^name trunk_1 ^height 1.0)   
-    (<tr2> ^name trunk_2 ^height 1.0)
+    (<el> ^name elastic ^available yes) 
+    (<tw> ^name twig ^available yes) # rametto
+    (<st> ^name stones ^available yes) 
+    (<tr1> ^name trunk_1 ^available yes ^height 1.0)   
+    (<tr2> ^name trunk_2 ^available yes ^height 1.0)
     (<wn> ^name window ^height 3.5)
     
-    (write |initialized!|)
+    (write |Initialized!|)
 }
 
 sp {htcompare*move*take 
@@ -58,8 +59,7 @@ sp {propose*move
 -->
    (<s> ^operator <op> +) 
    (<op> ^name move 
-         ^dir <dir>) 
-   (write (crlf) |Propose Move from | <from> | to | <dir>)
+         ^dir <dir>)
 }
 
 sp {apply*move
@@ -69,33 +69,40 @@ sp {apply*move
          ^dir <dir>)
 -->
    (<s> ^location <loc> - <dir>) 
-   (write (crlf) |Moved: | <dir>)
+   (write (crlf) |Moved from: |<loc> | to: | <dir>)
 }
 
 sp {propose*take
    (state <s> ^name escape
               ^location <loc>
               ^direction <dir>)
+   
    (<dir> ^name <loc>
           ^item <item>)
-   (<item> ^name <item_name>)
+   
+   (<item> ^name <item_name> ^available yes)
    -(<item> ^name window)
 -->
    (<s> ^operator <op> +)
    (<op> ^name take
-         ^item <item_name>)
-   (write (crlf) |Propose Take | <item_name>)
+         ^item <item>
+         ^item_name <item_name>)
 }
 
 sp {apply*take
    (state <s> ^name escape
-              ^operator <op>)
+              ^operator <op>
+              ^objects <obj>)
    (<op> ^name take 
-         ^item <item>)
+         ^item <item>
+         ^item_name <item_name>)  
+   (<obj> ^name <item_name>)        
 -->
-   (<s> ^bag <item>)
-   (write (crlf) |Item:| <item>)
+   (<obj> ^available yes - no +)
+   (write (crlf) |Taken item:| <item_name>)
+   (<s> ^operator <op> -)
 }
+
 
 
 
@@ -106,7 +113,7 @@ sp {rl*window
    (<op> ^name move 
          ^dir window_loc) 
 -->
-   (<s> ^operator <op> = 0) 
+   (<s> ^operator <op> = 0)
 }
 
 sp {rl*elastic
@@ -115,16 +122,16 @@ sp {rl*elastic
    (<op> ^name move 
          ^dir elastic_loc) 
 -->
-   (<s> ^operator <op> = 0) 
+   (<s> ^operator <op> = 0)
 }
 
-sp {rl*stone
+sp {rl*stones
    (state <s> ^name escape 
               ^operator <op> +) 
    (<op> ^name move 
-         ^dir stone_loc) 
+         ^dir stones_loc) 
 -->
-   (<s> ^operator <op> = 0) 
+   (<s> ^operator <op> = 0)
 }
 sp {rl*twig
    (state <s> ^name escape 
@@ -132,7 +139,7 @@ sp {rl*twig
    (<op> ^name move 
          ^dir twig_loc) 
 -->
-   (<s> ^operator <op> = 0) 
+   (<s> ^operator <op> = 0)
 }
 sp {rl*trunk1
    (state <s> ^name escape 
@@ -140,7 +147,7 @@ sp {rl*trunk1
    (<op> ^name move 
          ^dir trunk1_loc) 
 -->
-   (<s> ^operator <op> = 0) 
+   (<s> ^operator <op> = 0)
 }
 sp {rl*trunk2
    (state <s> ^name escape 
@@ -148,7 +155,7 @@ sp {rl*trunk2
    (<op> ^name move 
          ^dir trunk2_loc) 
 -->
-   (<s> ^operator <op> = 0) 
+   (<s> ^operator <op> = 0)
 }
 
 sp {elaborate*reward 
@@ -164,7 +171,14 @@ sp {elaborate*reward
 
 sp {elaborate*done
    (state <s> ^name escape
-              ^escaped yes) 
+              ^location window_loc
+              ^objects <ob1> <ob2> <ob3> <ob4> <ob5>)
+   (<ob1> ^name elastic ^available no)
+   (<ob2> ^name twig ^available no)
+   (<ob3> ^name stones ^available no)
+   (<ob4> ^name trunk_2 ^available no)
+   (<ob5> ^name trunk_1 ^available no)
 -->
+   (write (crlf) |Hai preso tutti gli oggetti! |)
    (halt)
 }
