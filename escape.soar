@@ -38,7 +38,7 @@ sp {apply*initialize-escape
     (<st> ^name stones ^taken no ^used no) 
     (<tr1> ^name trunk_1 ^taken no ^height 1.0)   
     (<tr2> ^name trunk_2 ^taken no ^height 1.0)
-    (<wn> ^name window ^height 3.5)
+    (<wn> ^name window ^height 3.5 ^broken no)
     
     (write |Initialized!|)
 }
@@ -71,6 +71,16 @@ sp {htcompare*take*craft
    (<op-craft> ^name craft) 
 -->
    (<s> ^operator <op-take> > <op-craft>)
+}
+
+sp {htcompare*shoot*move 
+   (state <s>  ^name escape) 
+   (<s> ^operator <op-move> +) 
+   (<s> ^operator <op-shoot> +) 
+   (<op-move> ^name move)
+   (<op-shoot> ^name shoot) 
+-->
+   (<s> ^operator <op-shoot> > <op-move>)
 }
 
 ### Propose & Apply ### 
@@ -114,12 +124,12 @@ sp {apply*craft
               ^operator <op>)
    (<op> ^name craft 
          ^combination <c>)
-   (<c> ^item1 <item1> ^item2 <item2>)        
+   (<c> ^name <c-name> ^item1 <item1> ^item2 <item2>)        
 -->
    (<c> ^crafted no - yes +)
    (<item1> ^used no - yes +)
    (<item2> ^used no - yes +)
-   (write (crlf) |Crafted item:| <c>)
+   (write (crlf) |Crafted item:| <c-name>)
 }
 
 sp {propose*take
@@ -153,12 +163,40 @@ sp {apply*take
    #(<s> ^operator <op> -)
 }
 
+sp {propose*shoot
+   (state <s> ^name escape
+              ^location window_loc
+              ^combination <c>
+              ^direction <d>)
+   (<c> ^name sling ^crafted yes)
+   (<d> ^name window_loc ^item <wn>)
+   (<wn> ^broken no)
+-->
+   (<s> ^operator <op> +)
+   (<op> ^name shoot)
+   (write (crlf) |Proposing to shoot!|)
+}
+
+sp {apply*shoot
+   (state <s> ^name escape
+              ^operator <op>
+              ^location <loc>
+              ^direction <d>)
+   (<op> ^name shoot)
+   (<d> ^name <loc> ^item <wn>)
+-->
+   (<wn> ^broken no - yes +)
+   (write (crlf) |Shoot at: | <loc>)
+}
+
+
 ### RL Rules
 sp {rl*sling
    (state <s> ^name escape 
               ^operator <op> +) 
    (<op> ^name craft 
-         ^combination sling) 
+         ^combination <sling>) 
+   (<sling> ^name sling)
 -->
    (<s> ^operator <op> = 0)
 }
@@ -167,7 +205,8 @@ sp {rl*stonelastic
    (state <s> ^name escape 
               ^operator <op> +) 
    (<op> ^name craft 
-         ^combination stonelastic) 
+         ^combination <stonelastic>) 
+   (<stonelastic> ^name stonelastic)
 -->
    (<s> ^operator <op> = 0)
 }
@@ -176,7 +215,8 @@ sp {rl*stonetwig
    (state <s> ^name escape 
               ^operator <op> +) 
    (<op> ^name craft 
-         ^combination stonetwig) 
+         ^combination <stonetwig>) 
+   (<stonetwig> ^name stonetwig)
 -->
    (<s> ^operator <op> = 0)
 }
@@ -232,9 +272,9 @@ sp {rl*trunk2
    (<s> ^operator <op> = 0)
 }
 
-sp {elaborate*reward_movement
+sp {elaborate*reward-movement
    (state <s> ^name escape
-              ^reward-link <r> #reward-link
+              ^reward-link <r> 
               ^location <d-name> 
               ^direction <dir>) 
    (<dir> ^name <d-name> ^reward <d-reward>) 
@@ -243,28 +283,37 @@ sp {elaborate*reward_movement
    (<rr> ^value <d-reward>)
 }
 
-sp {elaborate*reward_crafting
+sp {elaborate*reward-crafting
    (state <s> ^name escape
-              ^reward-link <r> #reward-link
+              ^reward-link <r> 
               ^combination <c>) 
    (<c> ^crafted yes ^reward <d-reward>) 
 -->
+   (write (crlf) |REWARD CRAFTING!| <d-reward>)
    (<r> ^reward <rr>) 
    (<rr> ^value <d-reward>)
 }
 
-sp {elaborate*done
+sp {elaborate*done-succes
    (state <s> ^name escape
               ^location window_loc
-              ^objects <ob1> <ob2> <ob3> <ob4> <ob5>
-              ^combination <c>)
-   (<ob1> ^name elastic ^taken yes)
-   (<ob2> ^name twig ^taken yes)
-   (<ob3> ^name stones ^taken yes)
-   (<ob4> ^name trunk_2 ^taken yes)
-   (<ob5> ^name trunk_1 ^taken yes)
-   (<c> ^crafted yes)
+              ^combination <c>
+              ^direction <d>)
+   (<d> ^name window_loc ^item <wn>)
+   (<wn> ^broken yes)
 -->
-   (write (crlf) |Hai craftato un oggetto! |)
+   (write (crlf) |Hai rotto la finestra!|)
    (halt)
 }
+
+sp {elaborate*done-failure
+   (state <s> ^name escape
+              ^combination <c1> <c2>
+              ^location window_loc)
+   (<c1> ^name sling ^crafted no)
+   (<c2> ^name <name> ^crafted yes)
+
+-->
+   (write (crlf) |Hai fatto una cazzata!|)
+   (halt)
+}  
