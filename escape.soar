@@ -18,9 +18,10 @@ sp {apply*initialize-escape
          ^location start
          ^objects <el> <tw> <st> <tr1> <tr2>
          ^direction <d1> <d2> <d3> <d4> <d5> <d6>
+         ^combination <sling> <stonetwig> <stonelastic>
          ^escaped no)
     
-    #(<d0> ^name start_loc ^item nil ^reward -1000)
+    
     (<d1> ^name window_loc ^item <wn> ^reward -0.5)
     (<d2> ^name elastic_loc ^item <el> ^reward -10)
     (<d3> ^name stones_loc ^item <st> ^reward -10)
@@ -28,11 +29,15 @@ sp {apply*initialize-escape
     (<d5> ^name trunk1_loc ^item <tr1> ^reward -10)
     (<d6> ^name trunk2_loc ^item <tr2> ^reward -10)
 
-    (<el> ^name elastic ^available yes) 
-    (<tw> ^name twig ^available yes) # rametto
-    (<st> ^name stones ^available yes) 
-    (<tr1> ^name trunk_1 ^available yes ^height 1.0)   
-    (<tr2> ^name trunk_2 ^available yes ^height 1.0)
+    (<sling> ^name sling ^item1 <el> ^item2 <tw> ^crafted no ^reward 1)
+    (<stonetwig> ^name stonetwig ^item1 <st> ^item2 <tw> ^crafted no ^reward -1)
+    (<stonelastic> ^name stonelastic ^item1 <st> ^item2 <el> ^crafted no ^reward -1)
+
+    (<el> ^name elastic ^taken no ^used no) 
+    (<tw> ^name twig ^taken no ^used no) # rametto
+    (<st> ^name stones ^taken no ^used no) 
+    (<tr1> ^name trunk_1 ^taken no ^height 1.0)   
+    (<tr2> ^name trunk_2 ^taken no ^height 1.0)
     (<wn> ^name window ^height 3.5)
     
     (write |Initialized!|)
@@ -46,7 +51,27 @@ sp {htcompare*move*take
    (<op-take> ^name take) 
 -->
    (<s> ^operator <op-take> > <op-move>)
-} 
+}
+
+sp {htcompare*move*craft 
+   (state <s>  ^name escape) 
+   (<s> ^operator <op-move> +) 
+   (<s> ^operator <op-craft> +) 
+   (<op-move> ^name move)
+   (<op-craft> ^name craft) 
+-->
+   (<s> ^operator <op-craft> > <op-move>)
+}
+
+sp {htcompare*take*craft 
+   (state <s>  ^name escape) 
+   (<s> ^operator <op-take> +) 
+   (<s> ^operator <op-craft> +) 
+   (<op-take> ^name take)
+   (<op-craft> ^name craft) 
+-->
+   (<s> ^operator <op-take> > <op-craft>)
+}
 
 ### Propose & Apply ### 
 sp {propose*move
@@ -72,6 +97,31 @@ sp {apply*move
    (write (crlf) |Moved from: |<loc> | to: | <dir>)
 }
 
+sp {propose*craft
+   (state <s> ^name escape
+              ^combination <c>)
+   (<c> ^item1 <item1> ^item2 <item2> ^crafted no)
+   (<item1> ^taken yes ^used no)
+   (<item2> ^taken yes ^used no)
+-->
+   (<s> ^operator <op> +) 
+   (<op> ^name craft 
+         ^combination <c>)
+}
+
+sp {apply*craft
+   (state <s> ^name escape
+              ^operator <op>)
+   (<op> ^name craft 
+         ^combination <c>)
+   (<c> ^item1 <item1> ^item2 <item2>)        
+-->
+   (<c> ^crafted no - yes +)
+   (<item1> ^used no - yes +)
+   (<item2> ^used no - yes +)
+   (write (crlf) |Crafted item:| <c>)
+}
+
 sp {propose*take
    (state <s> ^name escape
               ^location <loc>
@@ -80,7 +130,7 @@ sp {propose*take
    (<dir> ^name <loc>
           ^item <item>)
    
-   (<item> ^name <item_name> ^available yes)
+   (<item> ^name <item_name> ^taken no)
    -(<item> ^name window)
 -->
    (<s> ^operator <op> +)
@@ -98,15 +148,39 @@ sp {apply*take
          ^item_name <item_name>)  
    (<obj> ^name <item_name>)        
 -->
-   (<obj> ^available yes - no +)
+   (<obj> ^taken no - yes +)
    (write (crlf) |Taken item:| <item_name>)
-   (<s> ^operator <op> -)
+   #(<s> ^operator <op> -)
 }
 
-
-
-
 ### RL Rules
+sp {rl*sling
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name craft 
+         ^combination sling) 
+-->
+   (<s> ^operator <op> = 0)
+}
+
+sp {rl*stonelastic
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name craft 
+         ^combination stonelastic) 
+-->
+   (<s> ^operator <op> = 0)
+}
+
+sp {rl*stonetwig
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name craft 
+         ^combination stonetwig) 
+-->
+   (<s> ^operator <op> = 0)
+}
+
 sp {rl*window
    (state <s> ^name escape 
               ^operator <op> +) 
@@ -158,7 +232,7 @@ sp {rl*trunk2
    (<s> ^operator <op> = 0)
 }
 
-sp {elaborate*reward 
+sp {elaborate*reward_movement
    (state <s> ^name escape
               ^reward-link <r> #reward-link
               ^location <d-name> 
@@ -169,16 +243,28 @@ sp {elaborate*reward
    (<rr> ^value <d-reward>)
 }
 
+sp {elaborate*reward_crafting
+   (state <s> ^name escape
+              ^reward-link <r> #reward-link
+              ^combination <c>) 
+   (<c> ^crafted yes ^reward <d-reward>) 
+-->
+   (<r> ^reward <rr>) 
+   (<rr> ^value <d-reward>)
+}
+
 sp {elaborate*done
    (state <s> ^name escape
               ^location window_loc
-              ^objects <ob1> <ob2> <ob3> <ob4> <ob5>)
-   (<ob1> ^name elastic ^available no)
-   (<ob2> ^name twig ^available no)
-   (<ob3> ^name stones ^available no)
-   (<ob4> ^name trunk_2 ^available no)
-   (<ob5> ^name trunk_1 ^available no)
+              ^objects <ob1> <ob2> <ob3> <ob4> <ob5>
+              ^combination <c>)
+   (<ob1> ^name elastic ^taken yes)
+   (<ob2> ^name twig ^taken yes)
+   (<ob3> ^name stones ^taken yes)
+   (<ob4> ^name trunk_2 ^taken yes)
+   (<ob5> ^name trunk_1 ^taken yes)
+   (<c> ^crafted yes)
 -->
-   (write (crlf) |Hai preso tutti gli oggetti! |)
+   (write (crlf) |Hai craftato un oggetto! |)
    (halt)
 }
