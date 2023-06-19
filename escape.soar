@@ -1,5 +1,4 @@
-rl -s learning on 
-#rl -s learning-policy q-learning
+rl -s learning on
 indifferent-selection -g
 indifferent-selection -e 0.2
 
@@ -9,7 +8,6 @@ sp {propose*initialize-escape
 -->
     (<s> ^operator <o> +)
     (<o> ^name initialize-escape)
-    #(write |Proposed!|)
 }
 
 sp {apply*initialize-escape
@@ -23,24 +21,27 @@ sp {apply*initialize-escape
          ^direction <d1> <d2> <d3> <d4> <d5> <d6>
          ^combination <sling> <stonetwig> <stonelastic>
          ^shoot-dir <up> <down> <right> <left> <center>
-         ^escaped no)
+         ^escaped no
+         ^last_action <azione>)
+   
+    (<azione> ^name nil)   
     
-    (<d1> ^name window_loc ^item <wn> ^reward 1)
-    (<d2> ^name elastic_loc ^item <el> ^reward -10)
-    (<d3> ^name stones_loc ^item <st> ^reward -10)
-    (<d4> ^name twig_loc ^item <tw> ^reward -10)
-    (<d5> ^name trunk1_loc ^item <tr1> ^reward -10)
-    (<d6> ^name trunk2_loc ^item <tr2> ^reward -10)
+    (<d1> ^name window_loc ^item <wn> ^reward 0)
+    (<d2> ^name elastic_loc ^item <el> ^reward -1)
+    (<d3> ^name stones_loc ^item <st> ^reward -1)
+    (<d4> ^name twig_loc ^item <tw> ^reward -1)
+    (<d5> ^name trunk1_loc ^item <tr1> ^reward -1)
+    (<d6> ^name trunk2_loc ^item <tr2> ^reward -1)
 
-    (<sling> ^name sling ^item1 <el> ^item2 <tw> ^crafted no ^reward 1)
+    (<sling> ^name sling ^item1 <el> ^item2 <tw> ^crafted no ^reward +1)
     (<stonetwig> ^name stonetwig ^item1 <st> ^item2 <tw> ^crafted no ^reward -1)
     (<stonelastic> ^name stonelastic ^item1 <st> ^item2 <el> ^crafted no ^reward -1)
 
-    (<up> ^name up ^shooted no  ^reward -1.0)
-    (<down> ^name down ^shooted no ^reward -1.0)
-    (<right> ^name right ^shooted no ^reward +1.0)
-    (<left> ^name left ^shooted no ^reward -1.0)
-    (<center> ^name center ^shooted no ^reward -1.0)
+    (<up> ^name up ^shooted no  ^reward -1)
+    (<down> ^name down ^shooted no ^reward -1)
+    (<right> ^name right ^shooted no ^reward +1)
+    (<left> ^name left ^shooted no ^reward -1)
+    (<center> ^name center ^shooted no ^reward -1)
 
     (<el> ^name elastic ^taken no ^used no) 
     (<tw> ^name twig ^taken no ^used no)
@@ -145,7 +146,6 @@ sp {propose*move
    (state <s> ^name escape
               ^direction <d> 
               ^location <from>)
-
    (<d> ^name <dir>)
    -(<d> ^name <from>)
 -->
@@ -156,12 +156,15 @@ sp {propose*move
 
 sp {apply*move
    (state <s> ^operator <op> 
-              ^location <loc>)
+              ^location <loc>
+              ^last_action <la>)
    (<op> ^name move 
          ^dir <dir>)
 -->
-   (<s> ^location <loc> - <dir>) 
-   (write (crlf) |Moved from: |<loc> | to: | <dir>)
+   (<s> ^location <loc> - <dir>)
+   (<la> ^name <name> - move +
+         ^dir <dir>)
+   #(write (crlf) |Moved from: |<loc> | to: | <dir>)
 }
 
 sp {propose*craft
@@ -178,7 +181,8 @@ sp {propose*craft
 
 sp {apply*craft
    (state <s> ^name escape
-              ^operator <op>)
+              ^operator <op>
+              ^last_action <la>)
    (<op> ^name craft 
          ^combination <c>)
    (<c> ^name <c-name> ^item1 <item1> ^item2 <item2>)        
@@ -186,7 +190,9 @@ sp {apply*craft
    (<c> ^crafted no - yes +)
    (<item1> ^used no - yes +)
    (<item2> ^used no - yes +)
-   (write (crlf) |Crafted item:| <c-name>)
+   (<la> ^name <name> - craft +
+         ^item <c>)
+   #(write (crlf) |Crafted item:| <c-name>)
 }
 
 sp {propose*take
@@ -216,8 +222,7 @@ sp {apply*take
    (<obj> ^name <item_name>)        
 -->
    (<obj> ^taken no - yes +)
-   (write (crlf) |Taken item:| <item_name>)
-   #(<s> ^operator <op> -)
+   #(write (crlf) |Taken item:| <item_name>)
 }
 
 sp {propose*shoot
@@ -234,13 +239,13 @@ sp {propose*shoot
    (<s> ^operator <op> +)
    (<op> ^name shoot
          ^shoot-dir <sd>)
-   (write (crlf) |Proposing to shoot!|)
 }
 
 sp {apply*shoot
    (state <s> ^name escape
               ^operator <op>
-              ^object <wn>)
+              ^object <wn>
+              ^last_action <la>)
    (<op> ^name shoot
          ^shoot-dir <sd>)
    (<wn> ^name window)
@@ -249,7 +254,9 @@ sp {apply*shoot
    (<wn> ^broken no -)
    (<wn> ^broken (ifeq <sd-name> right yes no) +)
    (<sd> ^shooted no - yes +)
-   (write (crlf) |Shooted to| <sd-name>)
+   (<la> ^name <name> - shoot +
+         ^shoot-dir <sd>)
+   #(write (crlf) |Shooted to| <sd-name>)
    (<s> ^operator <op> -)
 }
 
@@ -264,7 +271,6 @@ sp {propose*stack
    (<op> ^name stack
          ^item_1 <ob1>
          ^item_2 <ob2>)
-   (write (crlf) | Proposed stack|)
 }
 
 sp {apply*stack
@@ -280,7 +286,6 @@ sp {apply*stack
    (<s> ^height <h> - (+ <h> <h1> <h2>) +)
    (<ob1> ^used no - yes +)
    (<ob2> ^used no - yes +)
-   (write (crlf) |Stacked trunks!| )
 }
 
 sp {propose*escape
@@ -292,7 +297,6 @@ sp {propose*escape
 -->
    (<s> ^operator <op> +)
    (<op> ^name escape)
-   (write(crlf) | Proposed escape. |)
 }
 
 sp {apply*escape
@@ -435,9 +439,9 @@ sp {rl*shoot-center
 sp {elaborate*reward-movement
    (state <s> ^name escape
               ^reward-link <r> 
-              ^location <d-name> 
-              ^direction <dir>) 
-   (<dir> ^name <d-name> ^reward <d-reward>) 
+              ^last_action <la>) 
+   (<la> ^name move ^dir <dir>)
+   (<dir> ^reward <d-reward>) 
 -->
    (<r> ^reward <rr>) 
    (<rr> ^value <d-reward>)
@@ -446,70 +450,26 @@ sp {elaborate*reward-movement
 sp {elaborate*reward-crafting
    (state <s> ^name escape
               ^reward-link <r> 
-              ^combination <c>) 
-   (<c> ^crafted yes ^reward <d-reward>) 
+              ^last_action <la>)
+   (<la> ^name craft ^item <item>)
+   (<item> ^crafted yes ^reward <d-reward>) 
 -->
    (<r> ^reward <rr>) 
    (<rr> ^value <d-reward>)
 }
 
-#sp {elaborate*reward-shooting
-#   (state <s> ^name escape
-#              ^reward-link <r> 
-#              ^shoot-dir <sd>) 
-#   (<sd> ^shooted yes ^reward <d-reward>) 
-#-->
-#   (<r> ^reward <rr>) 
-#   (<rr> ^value <d-reward>)
-#}
+sp {elaborate*reward-shooting
+   (state <s> ^name escape
+              ^reward-link <r> 
+              ^last_action <la>) 
+   (<la> ^name shoot ^shoot-dir <sd>)
+   (<sd> ^reward <d-reward>) 
+-->
+   (<r> ^reward <rr>) 
+   (<rr> ^value <d-reward>)
+}
 
-####
-sp {elaborate*reward-shooting-top
-   (state <s> ^name escape
-              ^reward-link <r> 
-              ^shoot-dir <sd>) 
-   (<sd> ^name top ^shooted yes) 
--->
-   (<r> ^reward <rr>) 
-   (<rr> ^value -1)
-}
-sp {elaborate*reward-shooting-down
-   (state <s> ^name escape
-              ^reward-link <r> 
-              ^shoot-dir <sd>) 
-   (<sd> ^name down ^shooted yes) 
--->
-   (<r> ^reward <rr>) 
-   (<rr> ^value -1)
-}
-sp {elaborate*reward-shooting-right
-   (state <s> ^name escape
-              ^reward-link <r> 
-              ^shoot-dir <sd>) 
-   (<sd> ^name right ^shooted yes) 
--->
-   (<r> ^reward <rr>) 
-   (<rr> ^value 1)
-}
-sp {elaborate*reward-shooting-left
-   (state <s> ^name escape
-              ^reward-link <r> 
-              ^shoot-dir <sd>) 
-   (<sd> ^name left ^shooted yes) 
--->
-   (<r> ^reward <rr>) 
-   (<rr> ^value -1)
-}
-sp {elaborate*reward-shooting-center
-   (state <s> ^name escape
-              ^reward-link <r> 
-              ^shoot-dir <sd>) 
-   (<sd> ^name center ^shooted yes) 
--->
-   (<r> ^reward <rr>) 
-   (<rr> ^value -1)
-}
-####
+
 
 sp {elaborate*done-succes
    (state <s> ^name escape
