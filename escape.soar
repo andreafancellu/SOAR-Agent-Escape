@@ -1,4 +1,6 @@
-rl -s learning on # Reinforcement Llearning
+rl -s learning on 
+indifferent-selection -g
+indifferent-selection -e 0.2
 
 sp {propose*initialize-escape
     (state <s> ^superstate nil 
@@ -19,10 +21,10 @@ sp {apply*initialize-escape
          ^object <el> <tw> <st> <tr1> <tr2> <wn>
          ^direction <d1> <d2> <d3> <d4> <d5> <d6>
          ^combination <sling> <stonetwig> <stonelastic>
+         ^shoot-dir <up> <down> <right> <left> <center>
          ^escaped no)
     
-    
-    (<d1> ^name window_loc ^item <wn> ^reward -0.5)
+    (<d1> ^name window_loc ^item <wn> ^reward 1)
     (<d2> ^name elastic_loc ^item <el> ^reward -10)
     (<d3> ^name stones_loc ^item <st> ^reward -10)
     (<d4> ^name twig_loc ^item <tw> ^reward -10)
@@ -32,6 +34,12 @@ sp {apply*initialize-escape
     (<sling> ^name sling ^item1 <el> ^item2 <tw> ^crafted no ^reward 1)
     (<stonetwig> ^name stonetwig ^item1 <st> ^item2 <tw> ^crafted no ^reward -1)
     (<stonelastic> ^name stonelastic ^item1 <st> ^item2 <el> ^crafted no ^reward -1)
+
+    (<up> ^name up ^shooted no  ^reward -1.0)
+    (<down> ^name down ^shooted no ^reward -1.0)
+    (<right> ^name right ^shooted no ^reward +1.0)
+    (<left> ^name left ^shooted no ^reward -1.0)
+    (<center> ^name center ^shooted no ^reward -1.0)
 
     (<el> ^name elastic ^taken no ^used no) 
     (<tw> ^name twig ^taken no ^used no)
@@ -109,6 +117,16 @@ sp {htcompare*shoot*stack
    (<op-shoot> ^name shoot) 
 -->
    (<s> ^operator <op-shoot> = <op-stack>)
+}
+
+sp {htcompare*shoot*shoot 
+   (state <s>  ^name escape) 
+   (<s> ^operator <op-shoot-1> +) 
+   (<s> ^operator <op-shoot-2> +) 
+   (<op-shoot-1> ^name shoot)
+   (<op-shoot-2> ^name shoot) 
+-->
+   (<s> ^operator <op-shoot-1> = <op-shoot-2>)
 }
 
 sp {htcompare*craft*stack 
@@ -205,13 +223,16 @@ sp {propose*shoot
    (state <s> ^name escape
               ^location window_loc
               ^combination <c>
-              ^object <st> <wn>)
+              ^object <st> <wn>
+              ^shoot-dir <sd>)
    (<st> ^name stones ^taken yes)
    (<c> ^name sling ^crafted yes)
    (<wn> ^name window ^broken no)
+   (<sd> ^shooted no)
 -->
    (<s> ^operator <op> +)
-   (<op> ^name shoot)
+   (<op> ^name shoot
+         ^shoot-dir <sd>)
    (write (crlf) |Proposing to shoot!|)
 }
 
@@ -219,13 +240,15 @@ sp {apply*shoot
    (state <s> ^name escape
               ^operator <op>
               ^object <wn>)
-   (<op> ^name shoot)
+   (<op> ^name shoot
+         ^shoot-dir <sd>)
    (<wn> ^name window)
+   (<sd> ^name <sd-name>)
 -->
    (<wn> ^broken no -)
-   (<wn> ^broken (ifeq (rand-int 4) 4 yes no) +)
-   (<wn> ^broken <x>)
-   (write (crlf) |Shooted.| <x>)
+   (<wn> ^broken (ifeq <sd-name> right yes no) +)
+   (<sd> ^shooted no - yes +)
+   (write (crlf) |Shooted to| <sd-name>)
    (<s> ^operator <op> -)
 }
 
@@ -362,6 +385,52 @@ sp {rl*trunk2
    (<s> ^operator <op> = 0)
 }
 
+sp {rl*shoot-up
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name shoot 
+         ^shoot-dir (<dir> ^name up))
+ 
+-->
+   (<s> ^operator <op> = 0)
+}
+
+sp {rl*shoot-down
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name shoot 
+         ^shoot-dir (<dir> ^name down)) 
+-->
+   (<s> ^operator <op> = 0)
+}
+
+sp {rl*shoot-right
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name shoot 
+         ^shoot-dir (<dir> ^name right)) 
+-->
+   (<s> ^operator <op> = 0)
+}
+
+sp {rl*shoot-left
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name shoot 
+         ^shoot-dir (<dir> ^name left)) 
+-->
+   (<s> ^operator <op> = 0)
+}
+
+sp {rl*shoot-center
+   (state <s> ^name escape 
+              ^operator <op> +) 
+   (<op> ^name shoot 
+         ^shoot-dir (<dir> ^name center)) 
+-->
+   (<s> ^operator <op> = 0)
+}
+
 sp {elaborate*reward-movement
    (state <s> ^name escape
               ^reward-link <r> 
@@ -383,6 +452,64 @@ sp {elaborate*reward-crafting
    (<rr> ^value <d-reward>)
 }
 
+#sp {elaborate*reward-shooting
+#   (state <s> ^name escape
+#              ^reward-link <r> 
+#              ^shoot-dir <sd>) 
+#   (<sd> ^shooted yes ^reward <d-reward>) 
+#-->
+#   (<r> ^reward <rr>) 
+#   (<rr> ^value <d-reward>)
+#}
+
+####
+sp {elaborate*reward-shooting-top
+   (state <s> ^name escape
+              ^reward-link <r> 
+              ^shoot-dir <sd>) 
+   (<sd> ^name top ^shooted yes) 
+-->
+   (<r> ^reward <rr>) 
+   (<rr> ^value -1)
+}
+sp {elaborate*reward-shooting-down
+   (state <s> ^name escape
+              ^reward-link <r> 
+              ^shoot-dir <sd>) 
+   (<sd> ^name down ^shooted yes) 
+-->
+   (<r> ^reward <rr>) 
+   (<rr> ^value -1)
+}
+sp {elaborate*reward-shooting-right
+   (state <s> ^name escape
+              ^reward-link <r> 
+              ^shoot-dir <sd>) 
+   (<sd> ^name right ^shooted yes) 
+-->
+   (<r> ^reward <rr>) 
+   (<rr> ^value 1)
+}
+sp {elaborate*reward-shooting-left
+   (state <s> ^name escape
+              ^reward-link <r> 
+              ^shoot-dir <sd>) 
+   (<sd> ^name left ^shooted yes) 
+-->
+   (<r> ^reward <rr>) 
+   (<rr> ^value -1)
+}
+sp {elaborate*reward-shooting-center
+   (state <s> ^name escape
+              ^reward-link <r> 
+              ^shoot-dir <sd>) 
+   (<sd> ^name center ^shooted yes) 
+-->
+   (<r> ^reward <rr>) 
+   (<rr> ^value -1)
+}
+####
+
 sp {elaborate*done-succes
    (state <s> ^name escape
               ^escaped yes) 
@@ -396,7 +523,6 @@ sp {elaborate*done-failure
               ^combination <c1> <c2>)
    (<c1> ^name sling ^crafted no)
    (<c2> ^name <name> ^crafted yes)
-   (<s> ^height > 300)
 
 -->
    (write (crlf) |Hai fatto una cazzata!|)
