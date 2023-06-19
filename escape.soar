@@ -1,4 +1,5 @@
 rl -s learning on 
+#rl -s learning-policy q-learning
 indifferent-selection -g
 indifferent-selection -e 0.2
 
