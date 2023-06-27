@@ -1,6 +1,6 @@
 rl -s learning on
 indifferent-selection -g
-indifferent-selection -e 0.2
+indifferent-selection -e 0.2 #20%deviationfromgreedy
 
 sp {propose*initialize-escape
     (state <s> ^superstate nil 
@@ -164,7 +164,6 @@ sp {apply*move
    (<s> ^location <loc> - <dir>)
    (<la> ^name <name> - move +
          ^dir <dir>)
-   #(write (crlf) |Moved from: |<loc> | to: | <dir>)
 }
 
 sp {propose*craft
