@@ -10,12 +10,12 @@ L'ambiente è immaginato come una stanza con all'interno degli oggetti e una fin
 Tutti gli oggetti (pietre, elastico, rametto, tronchi e finestra) sono  dispersi nell'ambiente. I movimenti dell'agente sono unicamente da e verso gli oggetti presenti nel mondo. 
 
 Supponiamo inoltre che
-- l'agente all'inizio di ogni episodio si trova in una posizione di partenza, *start*;
+- l'agente all'inizio di ogni run si trova in una posizione di partenza, *start*;
 - l'agente può spostarsi verso gli oggetti nella stanza e raccoglierli;
 - una volta che l'agente raccoglie due oggetti, ha la possibilità di combinarli, e nel caso lo faccia, non è più in grado di scomporli. Pertanto se dovesse creare una combinazione che non porta alla fuga, non avrebbe più alcun modo per fuggire. Ciò comporta, chiaramente, la terminazione del run . 
 
 ## Descrizione delle azioni
-Le azioni che l'agente, in generale, può compiere sono le seguenti: *move*, *take*, *craft*, *shoot*, *stack*, _escape_. 
+Le azioni che l'agente, in generale, può compiere sono le seguenti: *move*, *take*, *craft*, *shoot*, *stack*, *escape*. 
 
 Muoversi verso un oggetto: ***move***
 - *Condizioni:* 
@@ -44,7 +44,7 @@ Usare la fionda: ***shoot***
 - _Condizioni:_ 
 	- Trovarsi vicino alla finestra;
 	- Aver costruito una fionda;
-	- Aver raccolto i sassolini;
+	- Aver raccolto le pietre;
 	- La finestra non deve essere già rotta.
 - _Azioni:_ si prova a rompere la finestra, 
 - _Ipotesi fatte:_ Abbiamo cinque posizioni in cui sparare alla finestra. *up*, *down*, *right*, *left*, *center*. Solo colpendo la posizione giusta, *right*, l'agente riesce a rompere la finestra.
@@ -53,8 +53,8 @@ Usare un tronco: ***stack***
 - _Condizioni:_ 
 	- Trovarsi vicino alla finestra;
 	- Aver raccolto i tronchi.
-- _Azioni:_ si posiziona il tronco vicino alla finestra, eventualmente sopra un altro tronco nel caso in cui questo sia presente
-- _Ipotesi fatte:_ I tronchi hanno un attributo numerico _^height_ che specifica, appunto, quanto sono alti. L'applicazione di _utilize*tronco_ si limita, molto semplicemente, a sommare i valori di _^height_ del tronco attualmente in possesso dell'agente con l'attributo *^height* dell'ambiente.
+- _Azioni:_ i tronchi vengono impilati vicino alla finestra, viene aggiornata l'altezza massima raggiungibile dall'ambiente.
+- _Ipotesi fatte:_ I tronchi hanno un attributo numerico _^height_ che specifica quanto sono alti.
 
 Fuggire: **_escape_**
 - _Condizioni:_ 
