@@ -293,7 +293,6 @@ sp {apply*escape
    (<op> ^name escape)       
 -->
    (<s> ^escaped no - yes +)
-   (write(crlf) | Escaped! |)
 }
 
 ### RL Rules

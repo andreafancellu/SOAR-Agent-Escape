@@ -72,7 +72,7 @@ Abbiamo adottato diverse scelte per risolvere l'impasse:
 - se l'agente può decidere se muoversi o combinare due oggetti le opzioni sono numeric indifferent;
 - se l'agente può decidere se impilare i tronchi o combinare due oggetti le opzioni sono numeric indifferent;
 - se l'agente può decidere se impilare i tronchi o sparare alla finestra le opzioni sono numeric indifferent;
-- se l'agente può decidere se muoversi o combinare due oggetti le opzioni sono numeric indifferent;
+
 
 ## Ricompense
 Le ricompense vengono fornite all'agente dopo le seguenti azioni:
