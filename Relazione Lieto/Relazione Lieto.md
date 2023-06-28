@@ -63,6 +63,17 @@ Fuggire: **_escape_**
 - _Azioni:_ fuga dalla stanza
 - _Ipotesi fatte:_ Dopo che l'agente è fuggito, il run termina.
 
+## Come risolvere l'impasse?
+Abbiamo adottato diverse scelte per risolvere l'impasse:
+- se l'agente può decidere se muoversi o raccogliere un'oggetto viene preferito raccogliere l'oggetto;
+- se l'agente può decidere se raccogliere un oggetti o combinare due oggetti viene preferito raccogliere l'oggetto;
+- se l'agente può decidere se muoversi o sparare con la fionda alla finestra, viene preferito sparare alla finestra;
+- se l'agente può decidere se muoversi o impilare i tronchi, viene preferito impilare i tronchi;
+- se l'agente può decidere se muoversi o combinare due oggetti le opzioni sono numeric indifferent;
+- se l'agente può decidere se impilare i tronchi o combinare due oggetti le opzioni sono numeric indifferent;
+- se l'agente può decidere se impilare i tronchi o sparare alla finestra le opzioni sono numeric indifferent;
+- se l'agente può decidere se muoversi o combinare due oggetti le opzioni sono numeric indifferent;
+
 ## Ricompense
 Le ricompense vengono fornite all'agente dopo le seguenti azioni:
 - movimento: 0 se verso la finestra, -1 altrimenti;

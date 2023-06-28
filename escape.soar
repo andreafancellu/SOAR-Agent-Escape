@@ -50,7 +50,6 @@ sp {apply*initialize-escape
     (<tr2> ^name trunk_2 ^taken no ^height 100 ^used no)
     (<wn> ^name window ^height 350 ^broken no)
     
-    (write |Initialized!|)
 }
 
 sp {htcompare*move*take 
@@ -121,16 +120,6 @@ sp {htcompare*shoot*stack
    (<s> ^operator <op-shoot> = <op-stack>)
 }
 
-sp {htcompare*shoot*shoot 
-   (state <s>  ^name escape) 
-   (<s> ^operator <op-shoot-1> +) 
-   (<s> ^operator <op-shoot-2> +) 
-   (<op-shoot-1> ^name shoot)
-   (<op-shoot-2> ^name shoot) 
--->
-   (<s> ^operator <op-shoot-1> = <op-shoot-2>)
-}
-
 sp {htcompare*craft*stack 
    (state <s>  ^name escape) 
    (<s> ^operator <op-stack> +) 
@@ -191,7 +180,7 @@ sp {apply*craft
    (<item2> ^used no - yes +)
    (<la> ^name <name> - craft +
          ^item <c>)
-   #(write (crlf) |Crafted item:| <c-name>)
+   (write (crlf) |Crafted item:| <c-name>)
 }
 
 sp {propose*take
@@ -485,6 +474,6 @@ sp {elaborate*done-failure
    (<c2> ^name <name> ^crafted yes)
 
 -->
-   (write (crlf) |Hai fatto una cazzata!|)
+   (write (crlf) |Hai perso!|)
    (halt)
 }  
