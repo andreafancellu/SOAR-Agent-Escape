@@ -180,7 +180,7 @@ sp {apply*craft
    (<item2> ^used no - yes +)
    (<la> ^name <name> - craft +
          ^item <c>)
-   (write (crlf) |Crafted item:| <c-name>)
+   (write (crlf) |CRAFTED ITEM: | <c-name>)
 }
 
 sp {propose*take
@@ -210,7 +210,7 @@ sp {apply*take
    (<obj> ^name <item_name>)        
 -->
    (<obj> ^taken no - yes +)
-   #(write (crlf) |Taken item:| <item_name>)
+   (write (crlf) |TAKEN ITEM: | <item_name>)
 }
 
 sp {propose*shoot
@@ -244,7 +244,7 @@ sp {apply*shoot
    (<sd> ^shooted no - yes +)
    (<la> ^name <name> - shoot +
          ^shoot-dir <sd>)
-   #(write (crlf) |Shooted to| <sd-name>)
+   (write (crlf) |SHOOTED TO: | <sd-name>)
    (<s> ^operator <op> -)
 }
 
@@ -462,7 +462,7 @@ sp {elaborate*done-succes
    (state <s> ^name escape
               ^escaped yes) 
 -->
-   (write (crlf) |Sei scappato!|)
+   (write (crlf) |YOU ESCAPED!|)
    (halt)
 }
 
@@ -473,6 +473,6 @@ sp {elaborate*done-failure
    (<c2> ^name <name> ^crafted yes)
 
 -->
-   (write (crlf) |Hai perso!|)
+   (write (crlf) |YOU LOST!|)
    (halt)
 }  
